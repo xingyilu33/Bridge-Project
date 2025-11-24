@@ -1,0 +1,462 @@
+Centroidal Axis (ca)
+clear
+% A*d + ... / total area
+function [ca] = tbeam_ca(web_b, web_h, top_flange_b, top_flange_h, glue_tab_b) 
+    web_A = (web_b * web_h);
+    flange_A = (top_flange_b * top_flange_h);
+    gluetab_A = (glue_tab_b * 1.27);
+    tot_A = (web_A + flange_A + 2 * gluetab_A);
+
+    d1 = (web_h / 2);
+    d2 = (top_flange_h / 2 + web_h);
+    d3 = (web_h - 1.27 / 2);
+
+    ca = (web_A * d1 + flange_A * d2 + 2 * gluetab_A * d3) / tot_A;
+end
+
+function [ca] = pibeam_ca(web_b, web_h, top_flange_b, top_flange_h, glue_tab_b)
+    web_A = (web_b * web_h);
+    flange_A = (top_flange_b * top_flange_h);
+    gluetab_A = (glue_tab_b * 1.27);
+    tot_A = (2 * web_A + 2 * gluetab_A + flange_A);
+
+    d1 = (web_h / 2);
+    d2 = (top_flange_h / 2 + web_h);
+    d3 = (web_h - 1.27 / 2);
+
+    ca = (2 * web_A * d1 + flange_A * d2 + 2 * gluetab_A * d3) / tot_A;
+end
+
+function [ca] = ibeam_ca(bot_flange_b, bot_flange_h, web_b, web_h, top_flange_b, top_flange_h, gluetab_b)
+    web_A = (web_b * web_h);
+    bot_flange_A = (bot_flange_b * bot_flange_h);
+    top_flange_A = (top_flange_b * top_flange_h);
+    gluetab_A = (gluetab_b * 1.27);
+    tot_A = (web_A + bot_flange_A + top_flange_A + 4 * gluetab_A);
+    
+    d1 = (bot_flange_h / 2);
+    d2 = (web_h / 2 + bot_flange_h);
+    d3 = (top_flange_h / 2 + web_h + bot_flange_h);
+    d4 = (bot_flange_h + 1.27 / 2);
+    d5 = (bot_flange_h + web_h - 1.27 / 2);
+
+    ca = (bot_flange_A * d1 + web_A * d2 + top_flange_A * d3 + 2 * gluetab_A * d4 + 2 * gluetab_A * d5) / tot_A;
+end
+
+function [ca] = ubeam_ca(height_parabola, half_length_parabola, distance_to_second, height_block) 
+    AreaP1 = (4/3)*half_length_parabola*height_parabola;
+    AreaP2 = (4/3)*(half_length_parabola-distance_to_second)*(height_parabola-distance_to_second);
+    Area3 = 120*height_block;
+
+    centroid1 = (3/5)*height_parabola;
+    centroid2 = distance_to_second + (3/5)*(height_parabola-distance_to_second);
+    centroid3 = height_parabola + (height_block/2);
+
+    ca = ((AreaP1*centroid1)-(AreaP2*centroid2)+(Area3*centroid3))/(AreaP1-AreaP2+Area3);
+
+end
+
+tbeam_ca(100, 200, 300, 50, 10);
+ibeam_ca(220, 22, 15, 716, 267, 22, 0);
+pibeam_ca(100, 200, 300, 50, 0);
+
+Second Moment of Inertia (I)
+% bh^3/12 ... + Ad^2 ...
+function [I] = tbeam_I(web_b, web_h, top_flange_b, top_flange_h, gluetab_b)
+    web_A = (web_b * web_h);
+    flange_A = (top_flange_b * top_flange_h);
+    gluetab_A = (gluetab_b * 1.27);
+    
+    web_I = (web_b * web_h ^ 3 / 12);
+    flange_I = (top_flange_b * top_flange_h ^ 3 / 12);
+    gluetab_I = (gluetab_b * 1.26 ^ 3 / 12);
+
+    d1 = (tbeam_ca(web_b, web_h, top_flange_b, top_flange_h, gluetab_b) - web_h / 2);
+    d2 = (web_h - tbeam_ca(web_b, web_h, top_flange_b, top_flange_h, gluetab_b) + top_flange_h / 2);
+    d3 = (web_h - tbeam_ca(web_b, web_h, top_flange_b, top_flange_h, gluetab_b) - 1.27 / 2);
+
+    I = (2 * gluetab_I + web_I + flange_I + web_A * d1 ^ 2 + flange_A * d2 ^ 2 + 2 * gluetab_A * d3 ^ 2);
+end
+
+function [I] = pibeam_I(web_b, web_h, top_flange_b, top_flange_h, gluetab_b)
+    web_A = (web_b * web_h);
+    flange_A = (top_flange_b * top_flange_h);
+    gluetab_A = (gluetab_b * 1.27);
+
+    web_I = (web_b * web_h ^ 3 / 12);
+    flange_I = (top_flange_b * top_flange_h ^ 3 / 12);
+    gluetab_I = (gluetab_b * 1.26 ^ 3 / 12);
+
+    d1 = (pibeam_ca(web_b, web_h, top_flange_b, top_flange_h, gluetab_b) - web_h / 2);
+    d2 = (web_h - pibeam_ca(web_b, web_h, top_flange_b, top_flange_h, gluetab_b) + top_flange_h / 2);
+    d3 = (web_h - pibeam_ca(web_b, web_h, top_flange_b, top_flange_h, gluetab_b) - 1.27 / 2);
+
+    I = (2 * gluetab_I + 2 * web_I + flange_I + 2 * web_A * d1 ^ 2 + flange_A * d2 ^ 2 + 2 * gluetab_A * d3 ^ 2);
+end
+
+function [I] = ibeam_I(bot_flange_b, bot_flange_h, web_b, web_h, top_flange_b, top_flange_h, gluetab_b)
+    web_A = (web_b * web_h);
+    bot_flange_A = (bot_flange_b * bot_flange_h);
+    top_flange_A = (top_flange_b * top_flange_h);
+    gluetab_A = (gluetab_b * 1.27);
+    
+    web_I = (web_b * web_h ^ 3 / 12);
+    bot_flange_I = (bot_flange_b * bot_flange_h ^ 3 / 12);
+    top_flange_I = (top_flange_b * top_flange_h ^ 3 / 12);
+    gluetab_I = (gluetab_b * 1.26 ^ 3 / 12);
+
+    d1 = (ibeam_ca(bot_flange_b, bot_flange_h, web_b, web_h, top_flange_b, top_flange_h, gluetab_b) - bot_flange_h / 2);
+    d2 = abs(ibeam_ca(bot_flange_b, bot_flange_h, web_b, web_h, top_flange_b, top_flange_h, gluetab_b) - bot_flange_h - web_h / 2);
+    d3 = (web_h + bot_flange_h - ibeam_ca(bot_flange_b, bot_flange_h, web_b, web_h, top_flange_b, top_flange_h, gluetab_b) + top_flange_h / 2);
+    d4 = (ibeam_ca(bot_flange_b, bot_flange_h, web_b, web_h, top_flange_b, top_flange_h, gluetab_b) - 1.27 / 2 - bot_flange_h);
+    d5 = (web_h + bot_flange_h - ibeam_ca(bot_flange_b, bot_flange_h, web_b, web_h, top_flange_b, top_flange_h, gluetab_b) - 1.27 / 2);
+
+    I = (4 * gluetab_I + web_I + bot_flange_I + top_flange_I + bot_flange_A * d1 ^ 2 + web_A * d2 ^ 2 + top_flange_A * d3 ^ 2 + 2 * gluetab_A * d4 ^ 2 + 2 * gluetab_A * d5 ^ 2);
+end
+
+function [I] = ubeam_I(height_parabola, half_length_parabola, distance_to_second, height_block)
+    AreaP1 = (4/3)*half_length_parabola*height_parabola;
+    AreaP2 = (4/3)*(half_length_parabola-distance_to_second)*(height_parabola-distance_to_second);
+    Area3 = 120*height_block;
+    centroid1 = (3/5)*height_parabola;
+    centroid2 = distance_to_second + (3/5)*(height_parabola-distance_to_second);
+    centroid3 = height_parabola + (height_block/2);
+    overall_centroid = ((AreaP1*centroid1)-(AreaP2*centroid2)+(Area3*centroid3))/(AreaP1-AreaP2+Area3);
+
+    I = ((16/175)*half_length_parabola*height_parabola^3) + (AreaP1*(overall_centroid-centroid1)^2) + ((120*height_block^3)/12) + (Area3*(overall_centroid-centroid3)^2) - ((16/175)*(half_length_parabola-distance_to_second)*(height_parabola-distance_to_second)^3 + AreaP2*(overall_centroid-centroid2)^2);
+
+end
+
+tbeam_I(125, 300, 800, 100, 0);
+pibeam_I(125, 300, 800, 100, 0);
+ibeam_I(220, 22, 15, 716, 267, 22, 0);
+
+Flexural Stress
+% stress = My / I
+% stress * I / y = M
+% find tension in terms of (???)P
+
+function [tens] = max_tens(ca, I)
+    tens = 30 * I / ca;
+end
+
+function [comp] = max_comp(ca, h, I)
+    y = h - ca;
+    comp = 6 * I / y;
+end
+
+Shear Stress
+% stress = VQ / Ib
+% stress * I * b / Q
+% find shear in terms of (???)P
+
+% Q for tbeam and pibeam
+
+function [Q] = tbeam_find_Q(ca, web_b)
+    A = ca * web_b;
+    d = ca / 2;
+    Q = A * d;
+end
+
+function [Q] = pibeam_find_Q(ca, web_b)
+    A = ca * web_b;
+    d = ca / 2;
+    Q = 2 * A * d;
+end
+
+%Q for glue
+function [Q] = find_glue_Q(ca, flange_b, flange_h, h)
+    A = flange_b * flange_h;
+    d = h - ca - flange_h / 2;
+    Q = A * d;
+end
+
+% Q for ibeam
+function [Q] = ibeam_find_Q(ca, web_b, bot_flange_b, bot_flange_h, glue_tab_b)    
+    bot_flange_A = bot_flange_b * bot_flange_h;
+    gluetab_A = glue_tab_b * 1.27;
+    web_A = web_b * (ca - bot_flange_h);
+
+    d1 = ca - bot_flange_h / 2;
+    d2 = ca - bot_flange_h - 1.27 / 2;
+    d3 = ca - bot_flange_h - (ca - bot_flange_h) / 2;
+   
+    Q = bot_flange_A * d1 + gluetab_A * d2 + web_A * d3;
+end
+ 
+function [Q] = ubeam_find_Q(height_parabola, half_length_parabola, distance_to_second, height_block)
+    
+    AreaP1 = (4/3)*half_length_parabola*height_parabola;
+    AreaP2 = (4/3)*(half_length_parabola-distance_to_second)*(height_parabola-distance_to_second);
+    Area3 = 120*height_block;
+
+    centroid1 = (3/5)*height_parabola;
+    centroid2 = distance_to_second + (3/5)*(height_parabola-distance_to_second);
+    centroid3 = height_parabola + (height_block/2);
+
+    P1 = (4/5)*half_length_parabola*height_parabola*sqrt(3/5);
+    P2 = (4/3)*(((3/5)*height_parabola)-distance_to_second)*sqrt(((((3/5)*height_parabola)-distance_to_second)*(half_length_parabola-distance_to_second)^2)/(height_parabola-distance_to_second));
+    A = P1-P2;
+
+    overall_centroid = ((AreaP1*centroid1)-(AreaP2*centroid2)+(Area3*centroid3))/(AreaP1-AreaP2+Area3);
+    d1 = (9/25)*height_parabola;
+    d2 = (3/5)*((3/5)*(height_parabola)-distance_to_second);
+    parabola_centroid = ((P1*d1)-(P2*d2))/A;
+    Q = A * (overall_centroid-parabola_centroid);
+end
+
+% Q finder
+function [shear] = maximum_shear(Q, I, b)
+    shear = 4 * I * b / Q;
+end
+
+
+Buckling
+
+% Buckling Case 1 is restriction from both sides. This would be something
+% like a double layered space right above the flanges. (resitrction from
+% flange and from layer above)
+% Buckling Case 2 is restriction from one side. This would be something
+% like the over hang from the flanges.
+% Buckling Case 3 is a variable stress that occurs with depth. This would
+% be the entire cross section along the girder.
+% Buckling Case 4 is the Shear Buckling of the web. It will depend on our
+% diaphragms
+
+function [Buckling_Stress] = Buckling(Buckling_Case, thickness, width, diaph_distance, shearheight)
+    if Buckling_Case == 1
+        Buckling_Stress = ((4*(pi)^2)*4000)/(12*(1-0.2^2))*(thickness/width)^2;
+    end
+
+    if Buckling_Case == 2
+        Buckling_Stress = ((0.425*(pi)^2)*4000)/(12*(1-0.2^2))*(thickness/width)^2;
+    end
+
+    if Buckling_Case == 3
+        Buckling_Stress = (6*(pi)^2*4000)/(12*(1-0.2^2))*(thickness/width)^2;
+    end
+
+    if Buckling_Case == 4
+        if diaph_distance == 0
+            Buckling_Stress = 0;
+        else
+            Buckling_Stress = (5*(pi^2*4000) / (12*(1-0.2^2)))*(((thickness/diaph_distance)^2)+((thickness/shearheight)^2));
+        end
+    end
+end
+
+cumulative code
+%initialize
+web_b = 1.27 * 2;
+web_h = 75 - 1.27;
+bot_flange_b = 80;
+bot_flange_h = 1.27;
+top_flange_b = 100;
+top_flange_h = 1.27;
+glue_tab_b = 5;
+h = web_h + bot_flange_h + top_flange_h;
+b = 1.27 * 2;       
+web_sep = 80;            % farthest distance from pi webs
+diaph_distance = 600;      % how large the diaphragm is
+
+%ibeam_I(bot_flange_b, bot_flange_h, web_b, web_h, top_flange_b, top_flange_h, gluetab_b)
+I = ibeam_I(bot_flange_b, bot_flange_h, web_b, web_h, top_flange_b, top_flange_h, glue_tab_b)
+ca = ibeam_ca(bot_flange_b, bot_flange_h, web_b, web_h, top_flange_b, top_flange_h, glue_tab_b)
+glue_Q = find_glue_Q(ca, top_flange_b, top_flange_h, h)
+
+%ca, web_b, bot_flange_b, bot_flange_h, glue_tab_b
+Q = ibeam_find_Q(ca, web_b, bot_flange_b, bot_flange_h, glue_tab_b)
+
+max_mom = 170.2488;
+max_shear = 0.6577;
+
+function [Tensile_Failure, Compressive_Failure, Shear_Failure, Glue_Failure, Buckling_1, Buckling_2, ...
+    Buckling_3, Glue_Buckling_3, Buckling_4] ...
+    = testcase(web_b, web_h, top_flange_b, top_flange_h, bot_flange_b, bot_flange_h, h, I, ca, Q, ...
+    b, glue_Q, glue_tab_b, max_mom, max_shear, web_sep, diaph_distance)
+    
+    Shear_Failure = maximum_shear(Q, I, b) / max_shear;
+    Compressive_Failure = max_comp(ca, h, I) / max_mom;
+    Glue_Failure = maximum_shear(glue_Q, I, glue_tab_b) / max_shear;
+    Tensile_Failure = max_tens(ca, I) / max_mom;
+
+    Buckling_1 = Buckling(1, top_flange_h, web_sep, 0, 0) * I / max_mom / (h - ca);
+    Buckling_2 = Buckling(2, top_flange_h, (top_flange_b - web_sep) / 2, 0, 0) * I / max_mom / (h - ca);
+    Buckling_3 = Buckling(3, web_b, h - ca - top_flange_h, 0, 0) * I / max_mom / (h - ca);
+    Glue_Buckling_3 = Buckling(3, glue_tab_b, h - ca - top_flange_h, 0, 0) * I / max_mom / (h - ca);
+    Buckling_4 = Buckling(4, web_b, 0, diaph_distance, web_h) * I / max_mom / (h - ca - web_b);
+end
+
+[Tensile_Failure, Compressive_Failure, Shear_Failure, Glue_Failure, Buckling_1, Buckling_2, ...
+    Buckling_3, Glue_Buckling_3, Buckling_4] = testcase(web_b, web_h, top_flange_b, top_flange_h, bot_flange_b, bot_flange_h, h, I, ca, Q, ...
+    b, glue_Q, glue_tab_b, max_mom, max_shear, web_sep, diaph_distance)
+results = [Tensile_Failure, Compressive_Failure, Shear_Failure, Glue_Failure, Buckling_1, Buckling_2, ...
+    Buckling_3, Glue_Buckling_3, Buckling_4]
+
+loop for ibeam
+%{
+max = 100000000;
+for x = 10:2:120                    %web_h
+    for y = 50:2:100                %bottom flange length
+        for z = 100:2:150           %top flange length
+            for a = 10:2:80         %web seperation distance
+                   web_b = 1.27 * 2;
+                   web_h = x;
+                   bot_flange_b = y;
+                   bot_flange_h = 1.27;
+                   top_flange_b = z;
+                   top_flange_h = 1.27 * 2;
+                   glue_tab_b = 5;
+                   h = web_h + bot_flange_h + top_flange_h;
+                   b = 1.27 * 2;       
+                   web_sep = a;            % farthest distance from pi webs
+                   diaph_distance = 600;      % how large the diaphragm is
+
+                   I = ibeam_I(bot_flange_b, bot_flange_h, web_b, web_h, top_flange_b, top_flange_h, glue_tab_b);
+                   ca = ibeam_ca(bot_flange_b, bot_flange_h, web_b, web_h, top_flange_b, top_flange_h, glue_tab_b);
+                   glue_Q = find_glue_Q(ca, top_flange_b, top_flange_h, h);
+
+                   Q = ibeam_find_Q(ca, web_b, bot_flange_b, bot_flange_h, glue_tab_b);
+
+                   [Tensile_Failure, Compressive_Failure, Shear_Failure, Glue_Failure, Buckling_1, Buckling_2, ...
+                       Buckling_3, Glue_Buckling_3, Buckling_4] = testcase(web_b, web_h, top_flange_b, top_flange_h, bot_flange_b, bot_flange_h, h, I, ca, Q, ...
+                       b, glue_Q, glue_tab_b, max_mom, max_shear, web_sep, diaph_distance);
+                    results = [Tensile_Failure, Compressive_Failure, Shear_Failure, Glue_Failure, Buckling_1, Buckling_2, ...
+                        Buckling_3, Buckling_4];
+
+                   avg = mean(results);
+                   
+                   results2 = (results - avg) .^ 2;
+                   if sum(results2) < max
+                       max = sum(results2);
+                       best_web_h = x;
+                       best_bot_flange_b = y;
+                       best_top_flange_b = z;
+                       best_web_sep = a;
+                       best_result = results;
+                       best_I = ibeam_I(bot_flange_b, bot_flange_h, web_b, web_h, top_flange_b, top_flange_h, glue_tab_b);
+                   end
+            end
+        end
+     end
+ end
+
+best_web_h
+best_bot_flange_b
+best_top_flange_b
+best_web_sep
+best_result
+best_I
+
+A_tot = 2 * 1250 * web_h + 2 * 1250 * best_top_flange_b + 1250 * best_bot_flange_b + 2 * 5 * 1250;
+A_real = 813 * 1015;
+board = A_tot / A_real
+mass = board * 0.75 
+%}
+
+iterate for pi beam
+max = inf;
+for x = 10:2:120                    %web_h
+        for z = 100:2:150           %top flange length
+            for a = 10:2:80         %web seperation distance
+                   web_b = 1.27 * 2;
+                   web_h = x;
+                   top_flange_b = z;
+                   top_flange_h = 2 * 1.27;
+                   glue_tab_b = 15;
+                   h = web_h + top_flange_h;
+                   b = 1.27 * 2;       
+                   web_sep = a;            % farthest distance from pi webs
+                   diaph_distance = 600;      % how large the diaphragm is
+
+                   I = pibeam_I(web_b, web_h, top_flange_b, top_flange_h, glue_tab_b);
+                   ca = pibeam_ca(web_b, web_h, top_flange_b, top_flange_h, glue_tab_b);
+                   glue_Q = find_glue_Q(ca, top_flange_b, top_flange_h, h);
+
+                   Q = pibeam_find_Q(ca, web_b);
+
+                   [Tensile_Failure, Compressive_Failure, Shear_Failure, Glue_Failure, Buckling_1, Buckling_2, ...
+                       Buckling_3, Glue_Buckling_3, Buckling_4] = testcase(web_b, web_h, top_flange_b, top_flange_h, bot_flange_b, bot_flange_h, h, I, ca, Q, ...
+                       b, glue_Q, glue_tab_b, max_mom, max_shear, web_sep, diaph_distance);
+                    results = [Tensile_Failure, Compressive_Failure, Shear_Failure, Glue_Failure, Buckling_1, Buckling_2, ...
+                        Buckling_3, Buckling_4];
+
+                   avg = mean(results);
+                   
+                   results2 = results .^ 2 - avg;
+                   if sum(results2) < max
+                       max = sum(results2);
+                       best_web_h = x;
+                       best_top_flange_b = z;
+                       best_web_sep = a;
+                       best_result = results;
+                   end
+            end
+        end
+ end
+
+best_web_h
+best_top_flange_b
+best_web_sep
+best_result
+
+A_tot = 2 * 1250 * web_h + 2 * 1250 * top_flange_b + 2 * 5 * 1250;
+A_real = 813 * 1015;
+board = A_tot / A_real
+mass = board * 0.75
+
+
+iterate for U-beam
+{max = 100000000;
+for x = 10:2:120                   %height of parabola
+        for z = 10:2:150           %length of parabla/2
+            for a = 10:2:80        %thickness of u
+                for j = 20:2:150   %base of block
+
+                   height_parabola = x;
+                   half_length_parabola = z;
+                   distance_to_second = a;
+                   top_flange_b = j;
+                   height_block = 2 * 1.27;
+                   glue_tab_b = 15;
+                   h = parabola_height + height_block;
+                   b = 1.27 * 2;       
+                   web_sep = 2*half_length_parabola;            % farthest distance from pi webs
+                   diaph_distance = 600;      % how large the diaphragm is
+
+                   I = ubeam_I(height_parabola, half_length_parabola, distance_to_second, height_block);
+                   ca = ubeam_ca(height_parabola, half_length_parabola, distance_to_second, height_block);
+                   glue_Q = find_glue_Q(ca, top_flange_b, top_flange_h, h);
+
+                   Q = ubeam_find_Q(height_parabola, half_length_parabola, distance_to_second, height_block);
+
+                   [Tensile_Failure, Compressive_Failure, Shear_Failure, Glue_Failure, Buckling_1, Buckling_2, ...
+                       Buckling_3, Glue_Buckling_3, Buckling_4] = testcase(1.27, height_parabola, top_flange_b, top_flange_h, 0, 0, h, I, ca, Q, ...
+                       b, glue_Q, glue_tab_b, max_mom, max_shear, web_sep, diaph_distance);
+                    results = [Tensile_Failure, Compressive_Failure, Shear_Failure, Glue_Failure, Buckling_1, Buckling_2, ...
+                        Buckling_3, Buckling_4];
+
+                   avg = mean(results);
+
+                   results2 = (results - avg) .^2;
+                   if sum(results2) < max
+                       max = sum(results2);
+                       height_parabola = x;
+                       half_length_parabola = z;
+                       best_web_sep = a;
+                       best_result = results;
+                   end
+                end
+            end
+        end
+ end
+
+height_parabola
+half_length_parabola
+best_web_sep
+best_result
+
+A_tot = 2 * 1250 * web_h + 2 * 1250 * top_flange_b + 2 * 5 * 1250;
+A_real = 813 * 1015;
+board = A_tot / A_real
+mass = board * 0.75
